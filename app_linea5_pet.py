@@ -763,7 +763,7 @@ with cB:
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;justify-content:center">
             <span style="background:rgba(59,130,246,0.15);border:1px solid #3b82f6;
                   border-radius:20px;padding:4px 12px;font-size:0.78rem;color:#60a5fa">
-                🤖 MLPClassifier
+                🤖 StackingClassifier
             </span>
             <span style="background:rgba(52,211,153,0.15);border:1px solid #34d399;
                   border-radius:20px;padding:4px 12px;font-size:0.78rem;color:#34d399">
@@ -788,12 +788,14 @@ section_header("2", "Variables del Modelo")
 with st.expander("📘 ¿Cómo funciona el sistema?", expanded=False):
     st.markdown("""
     <div style="color:#cbd5e1;font-size:0.95rem;line-height:1.8">
-    El sistema usa un <strong style="color:#60a5fa">MLPClassifier (Red Neuronal)</strong>
-    entrenado con datos históricos de la Línea 5 PET. El pipeline de predicción es:<br><br>
+    El sistema usa un <strong style="color:#60a5fa">StackingClassifier</strong>
+    entrenado con datos históricos de la Línea 5 PET. Combina 3 modelos base
+    (Regresión Logística, Random Forest y XGBoost) cuyas predicciones alimentan
+    a un meta-modelo final de Regresión Logística. El pipeline de predicción es:<br><br>
     <span style="color:#f59e0b">① Ingreso de variables operativas</span> →
     <span style="color:#f59e0b">② One-Hot Encoding de categóricas</span> →
-    <span style="color:#f59e0b">③ StandardScaler en numéricas</span> →
-    <span style="color:#f59e0b">④ MLPClassifier (100→50 neuronas, ReLU, Adam)</span> →
+    <span style="color:#f59e0b">③ Predicción de los 3 modelos base (LogReg, Random Forest, XGBoost)</span> →
+    <span style="color:#f59e0b">④ Meta-modelo (Regresión Logística) combina las 3 predicciones</span> →
     <span style="color:#f59e0b">⑤ Predicción binaria + probabilidad</span>
     </div>
     """, unsafe_allow_html=True)
@@ -942,9 +944,9 @@ if predict_btn:
     steps = [
         ("🧹", "Limpieza y validación de datos",         0.15),
         ("🏷️",  "One-Hot Encoding de variables categóricas", 0.35),
-        ("📏", "StandardScaler en variables numéricas",  0.55),
-        ("🔗", "Alineación de columnas al orden del modelo", 0.70),
-        ("🤖", "Inferencia MLPClassifier (100→50, ReLU)", 0.88),
+        ("🔗", "Alineación de columnas al orden del modelo", 0.55),
+        ("🌲", "Inferencia de modelos base (LogReg, Random Forest, XGBoost)", 0.75),
+        ("🤖", "Meta-modelo combina las 3 predicciones (Stacking)", 0.90),
         ("✅", "Generación de resultado y probabilidad",  1.00),
     ]
 
@@ -1075,7 +1077,7 @@ if st.session_state.prediction:
 
         # Modo activo
         modo_label = (
-            "🟢 Predicción con modelo real (MLPClassifier entrenado)"
+            "🟢 Predicción con modelo real (StackingClassifier entrenado)"
             if MODO_REAL else
             "🟡 Modo simulado — agrega modelo_linea5.pkl para usar el modelo real"
         )
